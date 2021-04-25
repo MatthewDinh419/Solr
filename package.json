@@ -1,0 +1,25 @@
+{
+  "name": "Solr",
+  "version": "1.0.0",
+  "description": "Solr initial commit",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node ./src/app.js",
+    "dev": "nodemon ./src/app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MatthewDinh419/Solr.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/MatthewDinh419/Solr/issues"
+  },
+  "homepage": "https://github.com/MatthewDinh419/Solr#readme",
+  "dependencies": {
+    "discord.js": "^12.5.3"
+  }
+}
