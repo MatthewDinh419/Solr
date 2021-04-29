@@ -1,135 +1,86 @@
 const Discord = require("discord.js");
 
-/*
-  Common function arguments:
+let SendError = function (message, err) {
+  message.channel.send("Something went wrong: " + err);
+};
 
-  -message
-    discord.js message object which represents a message on discord
-  -filter
-    the filter that should be applied to the user's response
-  -giveaway_obj
-    object that containers the users responses
-*/
-/*
-  Notes Function
-  What custom notes should be added to the giveaway
-*/
-function Notes(message, filter, giveaway_obj) {
+// function selects winners from reactions and returns the winners discord ids
+function SelectWinners(message, winners, pool_size, num_winners, user_ids) {
   return new Promise(function (resolve, reject) {
-    message.channel.send("Any extra notes?").then(() => {
-      message.channel
-        .awaitMessages(filter, { max: 1, time: 30000, errors: ["time"] })
-        .then((collected) => {
-          response = collected.first().content;
-          if (response == "cancel") {
-            giveaway_obj = {};
-            reject();
-          } else {
-            giveaway_obj.notes = response;
-            resolve();
-          }
+    for (let i = 0; i < num_winners; i++) {
+      winner_index = Math.floor(Math.random() * (pool_size - 1) + 1); // will return a number between 1 and max number of candidates. Don't want 0 because that's the bot id
+      if (winner_index < 0 || winner_index > pool_size) {
+        reject();
+      }
+      user = message.guild.members.cache.get(user_ids[winner_index]);
+      winners.push("<@" + user_ids[winner_index] + ">");
+    }
+    resolve();
+  });
+}
+// function collects entries via reactions
+function FinishGiveaway(message, timeout, num_winners) {
+  const filter = (reaction) => {
+    return reaction.emoji.name === "🎉";
+  };
+  return new Promise(function (resolve, reject) {
+    const collector = message.createReactionCollector(filter, {
+      time: timeout,
+    });
+    collector.on("end", (collected) => {
+      let user_reaction = collected.array()[0];
+      let user_ids = Array.from(user_reaction.users.cache.keys());
+      let winners = [];
+      SelectWinners(message, winners, collected.size, num_winners, user_ids)
+        .then(() => {
+          resolve(winners);
         })
-        .catch((collected) => {
-          message.channel.send(
-            "Something went wrong. Try creating the giveaway again"
-          );
-          giveaway_obj = {};
-          reject();
+        .catch((err) => {
+          reject(err);
         });
     });
   });
 }
-/*
-  Time Function
-  Function to handle how long the giveaway should last.
-*/
-function Time(message, filter, giveaway_obj) {
-  return new Promise(function (resolve, reject) {
-    message.channel
-      .send("How long is the giveaway? (x sec, x min, x hours, x days)")
-      .then(() => {
-        message.channel
-          .awaitMessages(filter, { max: 1, time: 30000, errors: ["time"] })
-          .then((collected) => {
-            response = collected.first().content;
-            if (response == "cancel") {
-              giveaway_obj = {};
-              reject();
-            } else {
-              split_obj = response.split(" "); // should contain the int value of the amount of time and the string value of the time (sec, min, day, hours)
-              if (split_obj.length != 2) {
-                message.channel.send(
-                  "Incorrect time format. Try creating the giveaway again."
-                );
-                giveaway_obj = {};
-                reject();
-              }
-              if (
-                split_obj[1] != "sec" &&
-                split_obj[1] != "min" &&
-                split_obj[1] != "hours" &&
-                split_obj[1] != "days"
-              ) {
-                message.channel.send(
-                  "Incorrect time format. Try creating the giveaway again."
-                );
-                giveaway_obj = {};
-                reject();
-              }
-              giveaway_obj.time_val = split_obj[0];
-              giveaway_obj.time_type = split_obj[1];
-              resolve();
-            }
-          })
-          .catch((collected) => {
-            message.channel.send(
-              "Something went wrong. Try creating the giveaway again"
-            );
-            giveaway_obj = {};
-            reject();
-          });
-      });
-  });
-}
-function Item(message, filter, giveaway_obj) {
-  return new Promise(function (resolve, reject) {
-    message.channel.send("What are you giving away?").then(() => {
-      message.channel
-        .awaitMessages(filter, { max: 1, time: 30000, errors: ["time"] })
-        .then((collected) => {
-          response = collected.first().content;
-          if (response == "cancel") {
-            giveaway_obj = {};
-            reject();
-          } else {
-            giveaway_obj.item = response;
-            resolve();
-          }
-        })
-        .catch((collected) => {
-          message.channel.send(
-            "Something went wrong. Try creating the giveaway again"
-          );
-          giveaway_obj = {};
-          reject();
-        });
-    });
-  });
-}
-function GiveawayMessage(message, giveaway_obj) {
+async function GiveawayMessage(message, giveawayObj) {
+  let time_val = giveawayObj[1].split(" ")[0];
+  let time_incr = giveawayObj[1].split(" ")[1];
+  let time_ms;
   const giveaway_msg = new Discord.MessageEmbed()
     .setColor("#0099ff")
-    .setTitle(giveaway_obj.item)
+    .setTitle(giveawayObj[0])
     .setDescription("React to enter")
     .addFields(
       {
         name: "Time remaining",
-        value: giveaway_obj.time_val + " " + giveaway_obj.time_type,
+        value: time_val + " " + time_incr,
       },
-      { name: "Notes", value: giveaway_obj.notes }
+      { name: "Number of winners", value: giveawayObj[2] }
     )
     .setTimestamp();
-  message.channel.send(giveaway_msg);
+  if (time_incr === "sec") {
+    time_ms = time_val * 1000;
+  } else if (time_incr === "min") {
+    time_ms = time_val * 60000;
+  } else if (time_incr === "hours") {
+    time_ms = time_val * 3600000;
+  } else if (time_incr === "days") {
+    time_ms = time_val * 86400000;
+  } else {
+    time_ms = 0;
+  }
+  let sent = await message.channel.send(giveaway_msg);
+  message.channel.messages.fetch(sent.id).then((message) => {
+    message.react("🎉");
+    FinishGiveaway(message, time_ms, giveawayObj[2])
+      .then((winners) => {
+        message.channel.send(
+          `Congrats ${winners} on winning ${giveawayObj[0]}`
+        );
+      })
+      .catch((err) => {
+        SendError(message, err);
+      });
+  });
 }
 async function WipeMessages(message, num_wipe) {
   await message.channel.messages
@@ -141,37 +92,82 @@ async function WipeMessages(message, num_wipe) {
       );
     })
     .catch((err) => {
-      console.log(err);
+      SendError(message, err);
     });
+}
+function GetResponse(message, filter, giveawayObj, question) {
+  return new Promise(function (resolve, reject) {
+    message.channel.send(question).then(() => {
+      message.channel
+        .awaitMessages(filter, { max: 1, time: 10000, errors: ["time"] })
+        .then((collected) => {
+          response = collected.first().content;
+          if (response == "cancel") {
+            giveawayObj = [];
+            reject();
+          } else {
+            giveawayObj.push(response);
+            resolve();
+          }
+        })
+        .catch((collected) => {
+          giveawayObj = [];
+          reject();
+        });
+    });
+  });
 }
 module.exports = {
   name: "giveaway",
   description: "Giveaway command",
   execute: (message, args) => {
-    const filter1 = (m) => m.author.id === message.author.id;
-    var giveaway_obj = {};
-    Item(message, filter1, giveaway_obj)
+    const filter1 = (m) => m.author.id === message.author.id; // only filter is checking that the person who created the giveaway is the person who enters the details
+    const filter2 = (m) => {
+      // filter to make sure that the time response is correct
+      if (m.content.toLowerCase().split(" ").length != 2) {
+        // check that theres only the time and the time incr sent
+        return false;
+      }
+      split_obj = m.content.toLowerCase().split(" ");
+      if (
+        //make sure that the time incr is a valid time incr
+        split_obj[1] != "sec" &&
+        split_obj[1] != "min" &&
+        split_obj[1] != "hours" &&
+        split_obj[1] != "days"
+      ) {
+        return false;
+      }
+      return true;
+    };
+    var giveawayObj = []; // contains the users responses
+    GetResponse(message, filter1, giveawayObj, "What do you want to giveaway?")
       .then(() => {
-        WipeMessages(message, 3);
-        Time(message, filter1, giveaway_obj)
+        GetResponse(
+          message,
+          filter2,
+          giveawayObj,
+          "How long should the giveaway be?"
+        )
           .then(() => {
-            WipeMessages(message, 2);
-            Notes(message, filter1, giveaway_obj)
+            GetResponse(message, filter1, giveawayObj, "How many winners?")
               .then(() => {
-                console.log(giveaway_obj);
-                WipeMessages(message, 2);
-                GiveawayMessage(message, giveaway_obj);
+                WipeMessages(message, 7);
+                GiveawayMessage(message, giveawayObj);
               })
-              .catch(() => {
-                console.log("error");
+              .catch((err) => {
+                WipeMessages(message, 6);
+                SendError(message, err);
               });
           })
-          .catch(() => {
-            console.log("error");
+          .catch((err) => {
+            WipeMessages(message, 4);
+            SendError(message, err);
           });
       })
-      .catch(() => {
-        console.log("error");
+      .catch((err) => {
+        WipeMessages(message, 2);
+        SendError(message, err);
       });
   },
 };
