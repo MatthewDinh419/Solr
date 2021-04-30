@@ -29,6 +29,9 @@ client.on("message", (message) => {
   if (command === "ping") {
     message.channel.send("Pong.");
   } else if (command === "giveaway") {
+    console.log("hello");
     client.commands.get("giveaway").execute(message, args);
+  } else if (command === "clear") {
+    client.commands.get("clear").execute(message, args);
   }
 });

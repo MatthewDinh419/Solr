@@ -1,25 +1,54 @@
 const Discord = require("discord.js");
 
-let SendError = function (message, err) {
-  message.channel.send("Something went wrong: " + err);
+/*
+  SendError Function
+  Sends an error message to the user
+
+  Args
+  message: discord message object
+  err: error object
+*/
+let SendError = function (message, customMessage = "", err) {
+  if (customMessage == "") {
+    message.channel.send("Something went wrong: " + err);
+  } else {
+    message.channel.send(customMessage);
+  }
 };
 
-// function selects winners from reactions and returns the winners discord ids
-function SelectWinners(message, winners, pool_size, num_winners, user_ids) {
+/*
+  SelectWinners function
+  Will randomly select a winner
+
+  Args
+  message: discord message object
+  winners: array containing the winners' discord ids
+  poolSize: total amount of candidates
+  userIds: the discord ids of all the candidates
+*/
+function SelectWinners(message, winners, poolSize, numWinners, usersIds) {
   return new Promise(function (resolve, reject) {
-    for (let i = 0; i < num_winners; i++) {
-      winner_index = Math.floor(Math.random() * (pool_size - 1) + 1); // will return a number between 1 and max number of candidates. Don't want 0 because that's the bot id
-      if (winner_index < 0 || winner_index > pool_size) {
-        reject();
+    for (let i = 0; i < numWinners; i++) {
+      winnerIndex = Math.floor(Math.random() * (poolSize - 1) + 1); // will return a number between 1 and max number of candidates. Don't want 0 because that's the bot id
+      if (winnerIndex < 0 || winnerIndex > poolSize) {
+        reject("Something went wrong indexing winners.");
       }
-      user = message.guild.members.cache.get(user_ids[winner_index]);
-      winners.push("<@" + user_ids[winner_index] + ">");
+      user = message.guild.members.cache.get(usersIds[winnerIndex]);
+      winners.push("<@" + usersIds[winnerIndex] + ">");
     }
     resolve();
   });
 }
-// function collects entries via reactions
-function FinishGiveaway(message, timeout, num_winners) {
+/*
+  ReactionCollector Function
+  Creates a collector for collecting reactions
+
+  args
+  message: discord message object
+  timeout: the length of the giveaway
+  numWinners: the number of winners
+*/
+function ReactionCollector(message, timeout, numWinners) {
   const filter = (reaction) => {
     return reaction.emoji.name === "🎉";
   };
@@ -28,10 +57,11 @@ function FinishGiveaway(message, timeout, num_winners) {
       time: timeout,
     });
     collector.on("end", (collected) => {
-      let user_reaction = collected.array()[0];
-      let user_ids = Array.from(user_reaction.users.cache.keys());
+      // Once the giveaway ends, we now have a collection of user reactions
+      let userReaction = collected.array()[0];
+      let usersIds = Array.from(userReaction.users.cache.keys());
       let winners = [];
-      SelectWinners(message, winners, collected.size, num_winners, user_ids)
+      SelectWinners(message, winners, collected.size, numWinners, usersIds)
         .then(() => {
           resolve(winners);
         })
@@ -41,37 +71,47 @@ function FinishGiveaway(message, timeout, num_winners) {
     });
   });
 }
+
+/*
+  GiveawayMessage function
+  The embedded giveaway message that is sent
+
+  args
+  message: discord message object
+  giveawayObj: contains the user's responses
+*/
 async function GiveawayMessage(message, giveawayObj) {
-  let time_val = giveawayObj[1].split(" ")[0];
-  let time_incr = giveawayObj[1].split(" ")[1];
-  let time_ms;
-  const giveaway_msg = new Discord.MessageEmbed()
+  let timeVal = giveawayObj[1].split(" ")[0]; // contains the int value of the length of the giveaway
+  let timeIncr = giveawayObj[1].split(" ")[1]; // sec, min, hour, day,
+  let timeMs;
+  const giveawayMsg = new Discord.MessageEmbed()
     .setColor("#0099ff")
     .setTitle(giveawayObj[0])
     .setDescription("React to enter")
     .addFields(
       {
         name: "Time remaining",
-        value: time_val + " " + time_incr,
+        value: timeVal + " " + timeIncr,
       },
       { name: "Number of winners", value: giveawayObj[2] }
     )
     .setTimestamp();
-  if (time_incr === "sec") {
-    time_ms = time_val * 1000;
-  } else if (time_incr === "min") {
-    time_ms = time_val * 60000;
-  } else if (time_incr === "hours") {
-    time_ms = time_val * 3600000;
-  } else if (time_incr === "days") {
-    time_ms = time_val * 86400000;
+  // Convert the time that the user chose to ms
+  if (timeIncr === "sec") {
+    timeMs = timeVal * 1000;
+  } else if (timeIncr === "min") {
+    timeMs = timeVal * 60000;
+  } else if (timeIncr === "hours") {
+    timeMs = timeVal * 3600000;
+  } else if (timeIncr === "days") {
+    timeMs = timeVal * 86400000;
   } else {
-    time_ms = 0;
+    timeMs = 0;
   }
-  let sent = await message.channel.send(giveaway_msg);
+  let sent = await message.channel.send(giveawayMsg);
   message.channel.messages.fetch(sent.id).then((message) => {
     message.react("🎉");
-    FinishGiveaway(message, time_ms, giveawayObj[2])
+    ReactionCollector(message, timeMs, giveawayObj[2])
       .then((winners) => {
         message.channel.send(
           `Congrats ${winners} on winning ${giveawayObj[0]}`
@@ -82,9 +122,17 @@ async function GiveawayMessage(message, giveawayObj) {
       });
   });
 }
-async function WipeMessages(message, num_wipe) {
+
+/*
+  WipeMessages function
+  Will delete messages up to numWipe times
+
+  Args
+  numWipe: number of recent messages to wipe
+*/
+async function WipeMessages(message, numWipe) {
   await message.channel.messages
-    .fetch({ limit: num_wipe })
+    .fetch({ limit: numWipe })
     .then((messages) => {
       // Fetches the messages
       message.channel.bulkDelete(
@@ -95,6 +143,17 @@ async function WipeMessages(message, num_wipe) {
       SendError(message, err);
     });
 }
+
+/*
+  GetResponse Function
+  Sends question and parses the users response and stores it in giveawayObj
+
+  Args
+  message: discord message object
+  filter: the function that is used to filter user messages
+  giveawayObj: object containing users responses
+  question: question to ask the user
+*/
 function GetResponse(message, filter, giveawayObj, question) {
   return new Promise(function (resolve, reject) {
     message.channel.send(question).then(() => {
@@ -104,7 +163,7 @@ function GetResponse(message, filter, giveawayObj, question) {
           response = collected.first().content;
           if (response == "cancel") {
             giveawayObj = [];
-            reject();
+            reject("Giveaway has been cancelled.");
           } else {
             giveawayObj.push(response);
             resolve();
@@ -112,7 +171,7 @@ function GetResponse(message, filter, giveawayObj, question) {
         })
         .catch((collected) => {
           giveawayObj = [];
-          reject();
+          reject("Something went wrong getting response.");
         });
     });
   });
@@ -128,13 +187,13 @@ module.exports = {
         // check that theres only the time and the time incr sent
         return false;
       }
-      split_obj = m.content.toLowerCase().split(" ");
+      splitObj = m.content.toLowerCase().split(" ");
       if (
         //make sure that the time incr is a valid time incr
-        split_obj[1] != "sec" &&
-        split_obj[1] != "min" &&
-        split_obj[1] != "hours" &&
-        split_obj[1] != "days"
+        splitObj[1] != "sec" &&
+        splitObj[1] != "min" &&
+        splitObj[1] != "hours" &&
+        splitObj[1] != "days"
       ) {
         return false;
       }
@@ -162,7 +221,11 @@ module.exports = {
           })
           .catch((err) => {
             WipeMessages(message, 4);
-            SendError(message, err);
+            SendError(
+              message,
+              "Invalid time increment. Try creating the giveaway again.",
+              err
+            );
           });
       })
       .catch((err) => {
