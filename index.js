@@ -33,5 +33,7 @@ client.on("message", (message) => {
     client.commands.get("giveaway").execute(message, args);
   } else if (command === "clear") {
     client.commands.get("clear").execute(message, args);
+  } else if (command === "build") {
+    client.commands.get("build").execute(message, args);
   }
 });

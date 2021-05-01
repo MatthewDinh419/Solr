@@ -38,6 +38,9 @@
 ## About The Project
 
 An all in one discord bot that moderates chats, and all sorts of features that any discord group needs. This bot is catered torwards "cook groups" but is able to be used by any group.
+Features and bugs are currently being tracked via trello:
+
+https://trello.com/b/Knnvrg1p/solr
 
 ### Built With
 
