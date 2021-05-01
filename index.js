@@ -35,5 +35,7 @@ client.on("message", (message) => {
     client.commands.get("clear").execute(message, args);
   } else if (command === "build") {
     client.commands.get("build").execute(message, args);
+  } else if (command === "catchall") {
+    client.commands.get("catchall").execute(message, args);
   }
 });
