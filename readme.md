@@ -18,6 +18,7 @@
       <a href="#about-the-project">About The Project</a>
       <ul>
         <li><a href="#built-with">Built With</a></li>
+        <li><a href="#current-features">Built With</a></li>
       </ul>
     </li>
     <li>
@@ -38,21 +39,26 @@
 ## About The Project
 
 An all in one discord bot that moderates chats, and all sorts of features that any discord group needs. This bot is catered torwards "cook groups" but is able to be used by any group.
-Features and bugs are currently being tracked via trello:
+This bot is currently in development and is not ready to be invited to servers yet.
 
-https://trello.com/b/Knnvrg1p/solr
+### Current Features
+
+- []() Giveaways
+- []() Shopify product variant building
+- []() Message wiping
+- []() catchall variant generation
 
 ### Built With
 
 - []() Discord.js
 - []() SQL
-- []()NPM
+- []() NPM
 
 <!-- GETTING STARTED -->
 
 ## Getting Started
 
-To get a local copy up and running follow these simple steps.
+To get a local copy up and running follow these simple steps. Discord bot invitation coming soon...
 
 ### Prerequisites
 
@@ -76,13 +82,25 @@ To get a local copy up and running follow these simple steps.
 
 ## Usage
 
-TBD
+1. Via Node
+
+```sh
+  node start
+```
+
+2. Via Nodemon (npm install nodemon)
+
+```sh
+  nodemon index.js
+```
+
+Documentation coming soon. Gotta setup a custom domain for the gitbook.
 
 <!-- ROADMAP -->
 
 ## Roadmap
 
-TBD
+https://trello.com/b/Knnvrg1p/solr
 
 <!-- LICENSE -->
 

@@ -200,7 +200,7 @@ module.exports = {
       return true;
     };
     var giveawayObj = []; // contains the users responses
-    GetResponse(message, filter1, giveawayObj, "What do you want to giveaway?")
+    GetResponse(message, filter1, giveawayObj, "What do you want to give away?")
       .then(() => {
         GetResponse(
           message,
