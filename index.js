@@ -37,5 +37,9 @@ client.on("message", (message) => {
     client.commands.get("build").execute(message, args);
   } else if (command === "catchall") {
     client.commands.get("catchall").execute(message, args);
+  } else if (command === "roll") {
+    client.commands.get("roll").execute(message, args);
+  } else if (command === "remind") {
+    client.commands.get("remind").execute(message, args);
   }
 });
