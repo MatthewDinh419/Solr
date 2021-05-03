@@ -41,5 +41,7 @@ client.on("message", (message) => {
     client.commands.get("roll").execute(message, args);
   } else if (command === "remind") {
     client.commands.get("remind").execute(message, args);
+  } else if (command === "role") {
+    client.commands.get("role").execute(message, args);
   }
 });

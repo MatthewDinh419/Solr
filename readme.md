@@ -18,7 +18,7 @@
       <a href="#about-the-project">About The Project</a>
       <ul>
         <li><a href="#built-with">Built With</a></li>
-        <li><a href="#current-features">Built With</a></li>
+        <li><a href="#current-features">Current Features</a></li>
       </ul>
     </li>
     <li>

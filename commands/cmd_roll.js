@@ -2,12 +2,10 @@ const Discord = require("discord.js");
 
 /*
     SendMessage Function
-    Sends the embedded message of the catchall variations
+    Sends the embedded message of random roll 
 
     Args
-    message: discord message object
-    genCatchalls: the array containing all the generated catchalls
-    authorId: discord snowflake id of the user
+    randRoll: the roll that was randomized
 */
 function SendMessage(message, randRoll) {
   const giveawayMsg = new Discord.MessageEmbed().setColor("#0099ff").addFields({
