@@ -43,5 +43,9 @@ client.on("message", (message) => {
     client.commands.get("remind").execute(message, args);
   } else if (command === "role") {
     client.commands.get("role").execute(message, args);
+  } else if (command === "ban") {
+    client.commands.get("ban").execute(message, args);
+  } else if (command === "unban") {
+    client.commands.get("unban").execute(message, args);
   }
 });
