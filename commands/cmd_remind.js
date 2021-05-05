@@ -2,19 +2,14 @@ const Discord = require("discord.js");
 
 /*
     SendMessage Function
-    Sends the embedded message of the catchall variations
+    Sends the embedded message of the reminder
 
     Args
     message: discord message object
-    genCatchalls: the array containing all the generated catchalls
-    authorId: discord snowflake id of the user
+    event: event to be reminded of
 */
 function SendMessage(message, event) {
-  const giveawayMsg = new Discord.MessageEmbed().setColor("#0099ff").addFields({
-    name: "Reminding you for",
-    value: event,
-  });
-  message.channel.send(giveawayMsg);
+  message.channel.send(`Reminding <@${message.author["id"]}> for ${event}`);
 }
 
 module.exports = {

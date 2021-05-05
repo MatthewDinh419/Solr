@@ -1,17 +1,6 @@
 const Discord = require("discord.js");
 
 /*
-    SendMessage Function
-*/
-function SendMessage(message, randRoll) {
-  const giveawayMsg = new Discord.MessageEmbed().setColor("#0099ff").addFields({
-    name: "Rolled a",
-    value: randRoll,
-  });
-  message.channel.send(giveawayMsg);
-}
-
-/*
   WipeMessages function
   Will delete messages up to numWipe times
 
@@ -35,16 +24,29 @@ async function WipeMessages(message, numWipe) {
   });
 }
 
+/*
+  CollectReactions Function
+  Collector for reactions onto the previous message
+
+  args
+  message: discord message object
+  emoji: the unicode emoji text
+  role: the string text of the role which will be converted to the role object once a reaction has been collected
+*/
 function CollectReactions(message, emoji, role) {
   const filter = (reaction) => {
     return reaction.emoji.name === emoji;
   };
-  const collector = message.createReactionCollector(filter, {});
+  const collector = message.createReactionCollector(filter, { dispose: true });
   collector.on("collect", (reaction, user) => {
-    console.log(`Collected ${reaction.emoji.name} from ${user.tag}`);
+    // if user added reaction, add corresponding role
     let guildMember = message.guild.members.cache.get(user["id"]);
-    console.log(role);
     guildMember.roles.add(role);
+  });
+  collector.on("remove", (reaction, user) => {
+    // if user removed reaction, remove corresponding role
+    let guildMember = message.guild.members.cache.get(user["id"]);
+    guildMember.roles.remove(role);
   });
 }
 // https://getemoji.com/
@@ -67,13 +69,12 @@ module.exports = {
         message.channel.messages.fetch({ limit: 1 }).then((messages) => {
           let lastMessage = messages.first();
           lastMessage.react(emoji).then(() => {
-            console.log("yo");
             CollectReactions(lastMessage, emoji, foundRole);
           });
         });
       })
       .catch((err) => {
-        console.log(err);
+        message.channel.send(`Something went wrong ${err}`);
       });
   },
 };

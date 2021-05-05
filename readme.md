@@ -43,10 +43,13 @@ This bot is currently in development and is not ready to be invited to servers y
 
 ### Current Features
 
+- []() Reaction to roles
 - []() Giveaways
+- []() Reminders
 - []() Shopify product variant building
-- []() Message wiping
+- []() Message clearing
 - []() catchall variant generation
+- []() Ban/Unban command
 
 ### Built With
 
