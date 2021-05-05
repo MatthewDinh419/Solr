@@ -8,6 +8,10 @@
 
   <p align="center">
     An all in one discord bot
+    <br />
+    <a href="https://app.gitbook.com/@madi0567/s/solr/"><strong>Explore the docs »</strong></a>
+    <br />
+  </p>
 </p>
 
 <!-- TABLE OF CONTENTS -->
@@ -43,13 +47,14 @@ This bot is currently in development and is not ready to be invited to servers y
 
 ### Current Features
 
-- []() Reaction to roles
+- []() Chat Moderation
+- []() Reaction To Roles
 - []() Giveaways
 - []() Reminders
-- []() Shopify product variant building
-- []() Message clearing
-- []() catchall variant generation
-- []() Ban/Unban command
+- []() Shopify Product Variant building
+- []() Message Clearing
+- []() catchall Variant Generation
+- []() Ban/Unban Command
 
 ### Built With
 
@@ -96,8 +101,6 @@ To get a local copy up and running follow these simple steps. Discord bot invita
 ```sh
   nodemon index.js
 ```
-
-Documentation coming soon. Gotta setup a custom domain for the gitbook.
 
 <!-- ROADMAP -->
 
