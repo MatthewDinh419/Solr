@@ -3,7 +3,6 @@ const Discord = require("discord.js");
 const client = new Discord.Client();
 
 const config = require("./config.json");
-const token = config.token;
 client.login(config["token"]);
 
 // Dynamic Command Files Setup
@@ -19,10 +18,17 @@ for (const file of commandFiles) {
 }
 
 // Command Handling
+var bannedWords = [];
 client.on("message", (message) => {
   prefix = "!solr";
-  if (!message.content.startsWith(prefix) || message.author.bot) return;
 
+  bannedWords.forEach((ele) => {
+    if (message.content.toLowerCase().includes(ele)) {
+      message.delete();
+      return;
+    }
+  });
+  if (!message.content.startsWith(prefix) || message.author.bot) return;
   const args = message.content.slice(prefix.length).trim().split(/ +/);
   const command = args.shift().toLowerCase();
 
@@ -47,5 +53,7 @@ client.on("message", (message) => {
     client.commands.get("ban").execute(message, args);
   } else if (command === "unban") {
     client.commands.get("unban").execute(message, args);
+  } else if (command === "mod") {
+    client.commands.get("mod").execute(message, bannedWords, args);
   }
 });
